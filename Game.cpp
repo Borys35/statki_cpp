@@ -44,6 +44,8 @@ Game::Game()
 
 bool Game::start()
 {
+    srand(time(NULL));
+
     char opt = ' ';
 
     std::cout << "Statki\n";
