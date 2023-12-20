@@ -39,8 +39,16 @@ int BattleMap::take_shot(Map mapUnderAttack)
     std::cout << "Oddaj strzal w przeciwnika\n";
     std::cout << "Podaj kolumne: ";
     std::cin >> x;
+    if (x >= size.x() || x < 0) {
+        std::cout << "Niepoprawna wartosc. Wartosc domyslna x = 0";
+        x = 0;
+    }
     std::cout << "Podaj rzad: ";
     std::cin >> y;
+    if (y >= size.y() || y < 0) {
+        std::cout << "Niepoprawna wartosc. Wartosc domyslna y = 0";
+        y = 0;
+    }
 
     Vector2 cord = { x,y };
 
@@ -88,6 +96,10 @@ int BattleMap::take_shot_next_to_cell_ai(Map mapUnderAttack, Vector2 cell)
         legal_cells.push_back(Vector2(cell.x(), y_start));
     if (y_end != -1 && cells[cell.x()][y_end] == 0)
         legal_cells.push_back(Vector2(cell.x(), y_end));
+
+
+    if (legal_cells.size() == 0)
+        return -1;
 
     // get random legal cell
     int i = HelperFunctions::random_between_two_numbers(0, legal_cells.size() - 1);

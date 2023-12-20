@@ -15,7 +15,7 @@ char HelperFunctions::get_char(int idx)
     case 3:
         return '&';
     case 7:
-        return '_';
+        return '*';
     case 8:
         return 'X';
     default:

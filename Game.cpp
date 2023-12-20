@@ -50,26 +50,30 @@ bool Game::start()
 
     std::cout << "Statki\n";
     std::cout << "Wybierz mape\n";
-    std::cout << "[1] 5x5\n";
-    std::cout << "[2] 7x7\n";
-    std::cout << "[3] 10x10\n";
-    std::cout << "[4] 3x3\n";
+    std::cout << "[1] 3x3\n";
+    std::cout << "[2] 5x5\n";
+    std::cout << "[3] 7x7\n";
+    std::cout << "[4] 10x10\n";
+    std::cout << "[5] 12x12\n";
 
     std::cin >> opt;
     Vector2 map_size = Vector2(0,0);
 
     switch (opt) {
     case '1':
-        map_size.set(5, 5);
+        map_size.set(3, 3);
         break;
     case '2':
-        map_size.set(7, 7);
+        map_size.set(5, 5);
         break;
     case '3':
-        map_size.set(10, 10);
+        map_size.set(7, 7);
         break;
     case '4':
-        map_size.set(3, 3);
+        map_size.set(10, 10);
+        break;
+    case '5':
+        map_size.set(12, 12);
         break;
     default:
         return false;
@@ -101,11 +105,37 @@ void Game::prepare()
 
 void Game::start_battle()
 {
+    Vector2* ai_last_cell = new Vector2{ -1, -1 };
+    bool tryToHitSameCellInNextTurn = false;
+    int res = 0;
+
+    auto continue_hitting = [&](){
+        if (check_if_win(enemyBattleMap))
+            return;
+
+        Vector2 alc = *ai_last_cell;
+        tryToHitSameCellInNextTurn = false;
+        while (res == 8) {
+            // komputer strzela dopoki nie chybi
+
+            enemyBattleMap.display();
+            std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_DURATION));
+            system("cls");
+
+            // za kazdym razem kierunek jest obliczany na wypadek gdyby kierunek w funkcji take_shot_next_to_cell_ai zmienil sie
+            int x_diff = ai_last_cell->x() - alc.x();
+            int y_diff = ai_last_cell->y() - alc.y();
+            res = enemyBattleMap.take_shot_next_to_cell_ai(playerMap, *ai_last_cell, Vector2{ x_diff, y_diff });
+            if (check_if_win(enemyBattleMap))
+                return;
+        }
+    };
+
     std::cout << "Zacznij gre wybierajac dowolny przycisk";
     _getch();
     system("cls");
     while (true) {
-        int res = 0;
+        res = 0;
         // gracz strzela dopoki nie chybi
         do {
             if (res == 8)
@@ -118,7 +148,6 @@ void Game::start_battle()
                 return;
         } while (res != 7);
         res = 0;
-        Vector2* ai_last_cell = new Vector2{ -1, -1 };
         Vector2* ai_direction = new Vector2{ -1, -1 };
         do {
             std::cout << "TURA PRZECIWNIKA:\n";
@@ -136,23 +165,32 @@ void Game::start_battle()
 
                 // jezeli komputer znowu trafil, strzela w pola w jednym rzedzie lub kolumnie
                 if (res == 8) {
-                    while (res == 8) {
-                        // komputer strzela dopoki nie chybi
-
-                        enemyBattleMap.display();
-                        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_DURATION));
-                        system("cls");
-
-                        int x_diff = ai_last_cell->x() - alc.x();
-                        int y_diff = ai_last_cell->y() - alc.y();
-                        res = enemyBattleMap.take_shot_next_to_cell_ai(playerMap, *ai_last_cell, Vector2{ x_diff, y_diff });
-                        if (check_if_win(enemyBattleMap))
-                            return;
-                    }
+                    continue_hitting();
+                }
+                else if (res == 7) {
+                    tryToHitSameCellInNextTurn = true;
+                }
+                else {
+                    res = enemyBattleMap.take_shot_ai(playerMap, *ai_last_cell);
+                    if (check_if_win(enemyBattleMap))
+                        return;
                 }
             } 
             else {
-                res = enemyBattleMap.take_shot_ai(playerMap, *ai_last_cell);
+                if (tryToHitSameCellInNextTurn) {
+                    res = enemyBattleMap.take_shot_next_to_cell_ai(playerMap, *ai_last_cell);
+                    if (res == -1 || res == 0) {
+                        tryToHitSameCellInNextTurn = false;
+                        res = enemyBattleMap.take_shot_ai(playerMap, *ai_last_cell);
+                    }
+                    // jezeli komputer znowu trafil, strzela w pola w jednym rzedzie lub kolumnie
+                    else if (res == 8) {
+                        continue_hitting();
+                    }
+                }
+                else {
+                    res = enemyBattleMap.take_shot_ai(playerMap, *ai_last_cell);
+                }
                 if (check_if_win(enemyBattleMap))
                     return;
             }
