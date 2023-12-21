@@ -9,7 +9,7 @@ int BattleMap::take_shot(Map mapUnderAttack, Vector2 cord)
         if (mapUnderAttack.cells[cord.x()][cord.y()] == 3)
         {
             res = 8;
-            points++;
+            ++points;
         }
         else
         {

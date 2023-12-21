@@ -26,6 +26,8 @@ void Vector2::set(Vector2 v)
 
 void Vector2::rotate()
 {
+	if (_x == 1 && _y == 1)
+		return;
 	int tx = _x;
 	_x = _y;
 	_y = tx;

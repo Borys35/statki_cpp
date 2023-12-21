@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <conio.h>
+#include "HelperFunctions.h"
 
 #define SLEEP_DURATION 1500
 
@@ -42,17 +43,28 @@ Game::Game()
     playerBattleMap = BattleMap(true);
 }
 
+// minimax monte carlo
+
 bool Game::start()
 {
     srand(time(NULL));
 
     char opt = ' ';
 
-    std::cout << "Statki\n";
+    std::cout << "GRA W STATKI\n\n";
+    std::cout << "Legenda\n";
+    std::cout << HelperFunctions::get_char(0) << " - puste pole\n";
+    std::cout << HelperFunctions::get_char(2) << " - pole obok statku (nie mozna polozyc na nim kolejnego statku)\n";
+    std::cout << HelperFunctions::get_char(3) << " - pole z statkiem\n";
+    std::cout << HelperFunctions::get_char(7) << " - chybiony strzal\n";
+    std::cout << HelperFunctions::get_char(8) << " - trafiony strzal\n";
+    std::cout << "Zacznij gre wybierajac dowolny przycisk\n";
+    _getch();
+    system("cls");
     std::cout << "Wybierz mape\n";
-    std::cout << "[1] 3x3\n";
-    std::cout << "[2] 5x5\n";
-    std::cout << "[3] 7x7\n";
+    std::cout << "[1] 4x4\n";
+    std::cout << "[2] 6x6\n";
+    std::cout << "[3] 8x8\n";
     std::cout << "[4] 10x10\n";
     std::cout << "[5] 12x12\n";
 
@@ -61,13 +73,13 @@ bool Game::start()
 
     switch (opt) {
     case '1':
-        map_size.set(3, 3);
+        map_size.set(4, 4);
         break;
     case '2':
-        map_size.set(5, 5);
+        map_size.set(6, 6);
         break;
     case '3':
-        map_size.set(7, 7);
+        map_size.set(8, 8);
         break;
     case '4':
         map_size.set(10, 10);
@@ -101,6 +113,9 @@ void Game::prepare()
             enemyMap.place_ship_ai(currShip);
         }
     }
+    system("cls");
+    std::cout << "Twoja mapa\n";
+    playerMap.display();
 }
 
 void Game::start_battle()
@@ -131,7 +146,7 @@ void Game::start_battle()
         }
     };
 
-    std::cout << "Zacznij gre wybierajac dowolny przycisk";
+    std::cout << "Zacznij gre wybierajac dowolny przycisk\n";
     _getch();
     system("cls");
     while (true) {
@@ -147,6 +162,13 @@ void Game::start_battle()
             if (check_if_win(playerBattleMap))
                 return;
         } while (res != 7);
+        if (res == 7) {
+            std::cout << "CHYBILES\n";
+            playerBattleMap.display();
+            std::cout << "Przejdz do tury przeciwnika wybierajac dowolny przycisk\n";
+            _getch();
+            system("cls");
+        }
         res = 0;
         Vector2* ai_direction = new Vector2{ -1, -1 };
         do {
@@ -195,8 +217,9 @@ void Game::start_battle()
                     return;
             }
             enemyBattleMap.display();
-            std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_DURATION));
-            system("cls");
         } while (res != 7);
+        std::cout << "Przeciwnik chybil. Przejdz do swojej tury wybierajac dowolny przycisk\n";
+        _getch();
+        system("cls");
     }
 }
